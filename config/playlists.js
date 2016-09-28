@@ -2,21 +2,37 @@ module.exports.playlistIds = [{
 		id: 'PLJIIsW8PQINBYsFsBLV12Lbp01Dm_NiL3',
 		name: 'Summer Playoffs',
 		year: 2016,
-		region: 'NA LCS'
+		region: 'NA LCS',
+		done: true
 	}, {
 		id: 'PLJIIsW8PQINCOq1ElHbng6cPIp89dmX6s',
 		name: 'Summer Playoffs',
 		year: 2016,
-		region: 'EU LCS'
+		region: 'EU LCS',
+		done: true
 	}, {
 		id: 'PLJIIsW8PQINCFuphyqbif_Ngn1WPxmWN5',
 		name: 'Summer Season',
 		year: 2016,
-		region: 'NA LCS'
+		region: 'NA LCS',
+		done: true
 	}, {
 		id: 'PLJIIsW8PQINDsrueStsdfLYSX182GMmV5',
 		name: 'Summer Season',
 		year: 2016,
-		region: 'EU LCS'
+		region: 'EU LCS',
+		done: true
+	}, {
+		id: 'PLJIIsW8PQINAqYNUx651BwnJ6vkoZ-LIf',
+		name: 'Regional Qualifiers',
+		year: 2016,
+		region: 'NA LCS',
+		done: true
+	}, {
+		id: 'PLJIIsW8PQINAMzvo65xBvYk_-Nw6RCqYR',
+		name: 'Regionals',
+		year: 2016,
+		region: 'LMS',
+		done: true
 	}
 ];

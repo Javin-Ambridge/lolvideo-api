@@ -5,9 +5,12 @@
   router.route('/videos').post(function(req, res) {
    console.log(req.body); quotes.addQuote(req,res); 
  	}).get(function(req,res) { 
- 		if (req.query.view == 'dashboard') {
- 			videos.getAllVid(req,res);
- 		}
+ 		videos.getAllVid(req,res);
+ 	});
+  router.route('/series').post(function(req, res) {
+   console.log(req.body); quotes.addQuote(req,res); 
+ 	}).get(function(req,res) { 
+ 		videos.getAllVid(req,res);
  	});
   router.route('*').get(function(req, res) {
       res.sendfile('./public/index.html'); // load our public/index.html file

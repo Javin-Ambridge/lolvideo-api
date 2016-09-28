@@ -3,7 +3,7 @@ var Video = require('../api/video');
 
 module.exports.cronJob = function() {
 	var job = new CronJob({
-	  cronTime: '1 29,59 * * * *',
+	  cronTime: '1 59 * * * *',
 	  onTick: function() {
 	    console.log('GRAB DATA');
 	    Video.refreshVideos();
