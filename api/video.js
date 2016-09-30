@@ -9,6 +9,7 @@ youTube.setKey('AIzaSyC8cU2wC_I1MxQ70AJF7o65hCSzCifyOtE');
 
 var consoleTag = '[VIDEO]: ';
 var locked = false;
+var awesomeSaved, funstompSaved, newestSaved;
 
 function videoModel(ID, NAME, INFO, YEAR, AWESOMEN, FUNSTOMPN, REGION, DATE){
     return {
@@ -24,12 +25,76 @@ function videoModel(ID, NAME, INFO, YEAR, AWESOMEN, FUNSTOMPN, REGION, DATE){
 }                           
 
 module.exports.getAllVid = function (req, res) {
+    if (awesomeSaved && funstompSaved && newestSaved) {
+        console.log('Using saved');
+        return res.json({
+            awesome: awesomeSaved,
+            funstomp: funstompSaved,
+            newest: newestSaved
+        });
+    }
     var db = firebase.database();
     var ref = db.ref("/videos");
-    ref.orderByChild("awesomeN").limitToLast(3).on("value", function(vids) {
-        console.log(vids.val());
-        res.json({
-            awesome: vids.val()
+    ref.orderByChild("awesomeN").limitToLast(4).on("value", function(vids) {
+        var awesomeVids = [];
+
+        for(var a in vids.val()) {
+            awesomeVids.push({
+                key: a,
+                id: vids.val()[a].id,
+                name: vids.val()[a].name,
+                info: vids.val()[a].info,
+                year: vids.val()[a].year,
+                awesomeN: vids.val()[a].awesomeN,
+                funstompN: vids.val()[a].funstompN,
+                region: vids.val()[a].region,
+                created_at: new Date(vids.val()[a].created_at)
+            });
+        }
+
+        ref.orderByChild("funstompN").limitToLast(3).on("value", function(vids1) {
+            var funstompVids = [];
+
+            for(var b in vids1.val()) {
+                funstompVids.push({
+                    key: b,
+                    id: vids1.val()[b].id,
+                    name: vids1.val()[b].name,
+                    info: vids1.val()[b].info,
+                    year: vids1.val()[b].year,
+                    awesomeN: vids1.val()[b].awesomeN,
+                    funstompN: vids1.val()[b].funstompN,
+                    region: vids1.val()[b].region,
+                    created_at: new Date(vids1.val()[b].created_at)
+                });
+            }
+            ref.orderByChild("created_at").limitToLast(3).on("value", function(vids2) {
+                var newestVids = [];
+
+                for(var c in vids2.val()) {
+                    newestVids.push({
+                        key: c,
+                        id: vids2.val()[c].id,
+                        name: vids2.val()[c].name,
+                        info: vids2.val()[c].info,
+                        year: vids2.val()[c].year,
+                        awesomeN: vids2.val()[c].awesomeN,
+                        funstompN: vids2.val()[c].funstompN,
+                        region: vids2.val()[c].region,
+                        created_at: new Date(vids2.val()[c].created_at)
+                    });
+                }
+                
+                awesomeSaved = awesomeVids;
+                funstompSaved = funstompVids;
+                newestSaved = newestVids;
+
+                return res.json({
+                    awesome: awesomeVids,
+                    funstomp: funstompVids,
+                    newest: newestVids.reverse()
+                });
+            });
         });
     });
 }
