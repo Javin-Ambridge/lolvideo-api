@@ -24,18 +24,24 @@ function videoModel(ID, NAME, INFO, YEAR, AWESOMEN, FUNSTOMPN, REGION, DATE){
     };
 }                           
 
+function emptyGhettoCache() {
+    awesomeSaved = null;
+    funstompSaved = null;
+    newestSaved = null;
+}
+
 module.exports.getAllVid = function (req, res) {
     if (awesomeSaved && funstompSaved && newestSaved) {
         console.log('Using saved');
         return res.json({
-            awesome: awesomeSaved,
-            funstomp: funstompSaved,
-            newest: newestSaved
+            awesome: awesomeSaved.slice(0, 4),
+            funstomp: funstompSaved.slice(0, 3),
+            newest: newestSaved.slice(0, 3)
         });
     }
     var db = firebase.database();
     var ref = db.ref("/videos");
-    ref.orderByChild("awesomeN").limitToLast(4).on("value", function(vids) {
+    ref.orderByChild("awesomeN").limitToLast(4).once("value", function(vids) {
         var awesomeVids = [];
 
         for(var a in vids.val()) {
@@ -52,7 +58,7 @@ module.exports.getAllVid = function (req, res) {
             });
         }
 
-        ref.orderByChild("funstompN").limitToLast(3).on("value", function(vids1) {
+        ref.orderByChild("funstompN").limitToLast(3).once("value", function(vids1) {
             var funstompVids = [];
 
             for(var b in vids1.val()) {
@@ -68,7 +74,7 @@ module.exports.getAllVid = function (req, res) {
                     created_at: new Date(vids1.val()[b].created_at)
                 });
             }
-            ref.orderByChild("created_at").limitToLast(3).on("value", function(vids2) {
+            ref.orderByChild("created_at").limitToLast(3).once("value", function(vids2) {
                 var newestVids = [];
 
                 for(var c in vids2.val()) {
@@ -84,17 +90,70 @@ module.exports.getAllVid = function (req, res) {
                         created_at: new Date(vids2.val()[c].created_at)
                     });
                 }
-                
+
                 awesomeSaved = awesomeVids;
                 funstompSaved = funstompVids;
-                newestSaved = newestVids;
+                newestSaved = reverseArray(newestVids);
 
                 return res.json({
                     awesome: awesomeVids,
                     funstomp: funstompVids,
-                    newest: newestVids.reverse()
+                    newest: reverseArray(newestVids)
                 });
             });
+        });
+    });
+}
+
+function reverseArray(original) {
+    var tmp = [];
+    for(var i = original.length - 1; i >= 0; i--) {
+        tmp.push(original[i]);
+    }
+    return tmp;
+}
+
+module.exports.getMoreAwesomeVids = function (req, res, ind) {
+    if (awesomeSaved.length >= ind + 4) {
+        console.log("No query");
+        return res.json({
+            additions: awesomeSaved.slice(ind + 1, ind + 4)
+        });
+    }
+
+    var db = firebase.database();
+    var ref = db.ref("/videos");
+
+    ref.orderByChild("awesomeN").limitToLast(ind + 3 + 1).once("value", function(vids) {
+        var awesomeVids = [];
+
+        for(var a in vids.val()) {
+            var found = false;
+            for(var i = 0; i < awesomeSaved.length; i++) {
+                if (awesomeSaved[i].id == vids.val()[a].id) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                var model = {
+                    key: a,
+                    id: vids.val()[a].id,
+                    name: vids.val()[a].name,
+                    info: vids.val()[a].info,
+                    year: vids.val()[a].year,
+                    awesomeN: vids.val()[a].awesomeN,
+                    funstompN: vids.val()[a].funstompN,
+                    region: vids.val()[a].region,
+                    created_at: new Date(vids.val()[a].created_at)
+                };
+                awesomeVids.push(model);
+                awesomeSaved.push(model);
+                console.log('pushing model: ', model);
+            }
+        }
+        return res.json({
+            additions: awesomeVids
         });
     });
 }
@@ -240,7 +299,40 @@ function startSeries(cvl) {
 module.exports.refreshVideos = function() {
     var db = firebase.database();
     var ref = db.ref('/videos');
-    ref.on("value", function(vids) {
+    ref.once("value", function(vids) {
         startSeries(vids);
+    });
+};
+
+module.exports.rateVideo = function(data, res) {
+    var db = firebase.database();
+    var voteType;
+    var negative = false;
+
+    switch (data.type) {
+        case 'boring':
+            negative = true;
+        case 'awesome':
+            voteType = '/awesomeN';
+            break;
+        default:
+            console.log('incorrect type: ' + data.type + ' -exiting');
+            return;
+    }
+
+    var videosRef = db.ref('/videos/' + data.key + voteType);
+    videosRef.transaction(function (current_value) {
+        var updated;
+        if (negative) {
+            updated = (current_value || 0) - 1;
+        } else {
+            updated = (current_value || 0) + 1;
+        }
+        return updated;
+    }).then(function() {
+        emptyGhettoCache();
+        res.json({
+            success: true
+        });
     });
 };
