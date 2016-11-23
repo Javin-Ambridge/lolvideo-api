@@ -103,7 +103,7 @@ module.exports.getAllVid = function (req, res) {
             });
         });
     });
-}
+};
 
 function reverseArray(original) {
     var tmp = [];
@@ -113,29 +113,61 @@ function reverseArray(original) {
     return tmp;
 }
 
-module.exports.getMoreAwesomeVids = function (req, res, ind) {
-    if (awesomeSaved.length >= ind + 4) {
-        console.log("No query");
-        return res.json({
-            additions: awesomeSaved.slice(ind + 1, ind + 4)
-        });
+function isFound(type, vids, a) {
+    switch(type) {
+        case 'awesome':
+            for(var i = 0; i < awesomeSaved.length; i++) {
+                if (awesomeSaved[i].id == vids.val()[a].id) {
+                    return true;
+                }
+            }
+            break;
+        case 'fiesta':
+            for(var i = 0; i < funstompSaved.length; i++) {
+                if (funstompSaved[i].id == vids.val()[a].id) {
+                    return true;
+                }
+            }
+            break;
+    }
+    return false;
+}
+
+module.exports.getMoreVids = function (req, res, ind, type) {
+    var orderBy;
+    var limitToLast;
+    switch (type) {
+        case 'awesome':
+            if (awesomeSaved.length >= ind + 4) {
+                return res.json({
+                    additions: awesomeSaved.slice(ind + 1, ind + 4)
+                });
+            } else {
+                orderBy = 'awesomeN';
+                limitToLast = ind + 3 + 1; //Current + big vid
+                break;
+            }
+        case 'fiesta':
+            if (funstompSaved.length >= ind + 3) {
+                console.log('Cached..');
+                return res.json({
+                    additions: funstompSaved.slice(ind, ind + 3)
+                });
+            } else {
+                orderBy = 'funstompN';
+                limitToLast = ind + 3; //Current
+                break;
+            }
     }
 
     var db = firebase.database();
     var ref = db.ref("/videos");
 
-    ref.orderByChild("awesomeN").limitToLast(ind + 3 + 1).once("value", function(vids) {
-        var awesomeVids = [];
+    ref.orderByChild(orderBy).limitToLast(limitToLast).once("value", function(vids) {
+        var vidsNew = [];
 
         for(var a in vids.val()) {
-            var found = false;
-            for(var i = 0; i < awesomeSaved.length; i++) {
-                if (awesomeSaved[i].id == vids.val()[a].id) {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
+            if (!isFound(type, vids, a)) {
                 var model = {
                     key: a,
                     id: vids.val()[a].id,
@@ -147,24 +179,23 @@ module.exports.getMoreAwesomeVids = function (req, res, ind) {
                     region: vids.val()[a].region,
                     created_at: new Date(vids.val()[a].created_at)
                 };
-                awesomeVids.push(model);
-                awesomeSaved.push(model);
+                vidsNew.push(model);
+                switch (type) {
+                    case 'awesome':
+                        awesomeSaved.push(model);
+                        break;
+                    case 'fiesta':
+                        funstompSaved.push(model);
+                        break;
+                }
                 console.log('pushing model: ', model);
             }
         }
         return res.json({
-            additions: awesomeVids
+            additions: vidsNew
         });
     });
-}
-
-module.exports.getBigVid = function (req, res) {
-
-}
-
-module.exports.removeAll = function() {
-
-}
+};
 
 function recurseNextPages(pt, playlistID, plid, cvl, callback) {
     var pageTokens = [{
