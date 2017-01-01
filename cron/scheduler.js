@@ -11,5 +11,15 @@ module.exports.cronJob = function() {
 	  runOnInit: true,
 	  start: false
 	});
+	var refreshCache = new CronJob({
+	  cronTime: '1 */15 * * * *',
+	  onTick: function() {
+	    console.log('Refresh CACHE');
+	    Video.emptyCache();
+	  },
+	  runOnInit: true,
+	  start: false
+	});
 	job.start();
+	refreshCache.start();
 };

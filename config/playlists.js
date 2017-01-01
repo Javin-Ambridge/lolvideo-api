@@ -34,5 +34,11 @@ module.exports.playlistIds = [{
 		year: 2016,
 		region: 'LMS',
 		done: true
+	}, {
+		id: 'PLJIIsW8PQINDu3HtPhXtOrWUPY_EgbZIQ',
+		name: 'Worlds',
+		year: 2016,
+		region: 'WORLD',
+		done: true
 	}
 ];

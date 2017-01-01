@@ -24,6 +24,10 @@ function videoModel(ID, NAME, INFO, YEAR, AWESOMEN, FUNSTOMPN, REGION, DATE){
     };
 }                           
 
+module.exports.emptyCache = function() {
+    emptyGhettoCache();
+};
+
 function emptyGhettoCache() {
     awesomeSaved = null;
     funstompSaved = null;
@@ -223,7 +227,6 @@ function recurseNextPages(pt, playlistID, plid, cvl, callback) {
                     }
                     if (found) {
                         console.log('found');
-                        i++;
                         cb2();
                     } else {
                         console.log('not found');
@@ -237,7 +240,6 @@ function recurseNextPages(pt, playlistID, plid, cvl, callback) {
                             plid.region,
                             new Date(item.snippet.publishedAt).getTime()
                         ), function(done) {
-                            i++;
                             cb2();
                         });
                     }
