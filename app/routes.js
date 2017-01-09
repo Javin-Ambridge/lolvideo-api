@@ -4,8 +4,12 @@
  module.exports = function(router) {
   router.route('/videos').post(function(req, res) {
    console.log(req.body); quotes.addQuote(req,res); 
- 	}).get(function(req,res) { 
- 		videos.getAllVid(req,res);
+ 	}).get(function(req,res) {
+ 		if (req.query.type === 'awesome') {
+ 			videos.getAwesomeSpecific(req, res);
+ 		} else {
+ 			videos.getAllVid(req,res);
+ 		}
  	});
   router.route('/series').post(function(req, res) {
   	videos.rateVideo(req.body, res);

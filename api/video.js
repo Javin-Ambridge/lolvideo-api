@@ -34,14 +34,47 @@ function emptyGhettoCache() {
     newestSaved = null;
 }
 
+module.exports.getAwesomeSpecific = function (req, res) {
+    if (awesomeSaved && awesomeSaved.length >= 12) {
+        return res.json({
+            awesome: awesomeSaved.slice(0, 12)
+        });
+    }
+    var db = firebase.database();
+    var ref = db.ref("/videos");
+    ref.orderByChild("awesomeN").limitToLast(12).once("value", function(vids) {
+        var awesomeVids = [];
+
+        for(var a in vids.val()) {
+            awesomeVids.push({
+                key: a,
+                id: vids.val()[a].id,
+                name: vids.val()[a].name,
+                info: vids.val()[a].info,
+                year: vids.val()[a].year,
+                awesomeN: vids.val()[a].awesomeN,
+                funstompN: vids.val()[a].funstompN,
+                region: vids.val()[a].region,
+                created_at: new Date(vids.val()[a].created_at)
+            });
+        }
+        awesomeSaved = awesomeVids;
+        return res.json({
+            awesome: awesomeSaved
+        });
+    });
+};
+
 module.exports.getAllVid = function (req, res) {
     if (awesomeSaved && funstompSaved && newestSaved) {
-        console.log('Using saved');
-        return res.json({
-            awesome: awesomeSaved.slice(0, 4),
-            funstomp: funstompSaved.slice(0, 3),
-            newest: newestSaved.slice(0, 3)
-        });
+        if (awesomeSaved.length >= 4 && funstompSaved.length >= 3 && newestSaved.length >= 3) {
+            console.log('Using saved');
+            return res.json({
+                awesome: awesomeSaved.slice(0, 4),
+                funstomp: funstompSaved.slice(0, 3),
+                newest: newestSaved.slice(0, 3)
+            });
+        }
     }
     var db = firebase.database();
     var ref = db.ref("/videos");
@@ -120,6 +153,10 @@ function reverseArray(original) {
 function isFound(type, vids, a) {
     switch(type) {
         case 'awesome':
+            if (!awesomeSaved) {
+                return false;
+            }
+
             for(var i = 0; i < awesomeSaved.length; i++) {
                 if (awesomeSaved[i].id == vids.val()[a].id) {
                     return true;
@@ -127,8 +164,23 @@ function isFound(type, vids, a) {
             }
             break;
         case 'fiesta':
+            if (!funstompSaved) {
+                return false;
+            }
+
             for(var i = 0; i < funstompSaved.length; i++) {
                 if (funstompSaved[i].id == vids.val()[a].id) {
+                    return true;
+                }
+            }
+            break;
+        case 'newest':
+            if (!newestSaved) {
+                return false;
+            }
+
+            for(var i = 0; i < newestSaved.length; i++) {
+                if (newestSaved[i].id == vids.val()[a].id) {
                     return true;
                 }
             }
@@ -140,27 +192,55 @@ function isFound(type, vids, a) {
 module.exports.getMoreVids = function (req, res, ind, type) {
     var orderBy;
     var limitToLast;
+    var awesomeReadjust = false;
+    var fiestaReadjust = false;
+    var newReadjust = false;
     switch (type) {
         case 'awesome':
-            if (awesomeSaved.length >= ind + 4) {
-                return res.json({
-                    additions: awesomeSaved.slice(ind + 1, ind + 4)
-                });
-            } else {
+            if (!awesomeSaved || !(awesomeSaved.length >= ind + 4)) {
                 orderBy = 'awesomeN';
-                limitToLast = ind + 3 + 1; //Current + big vid
+                extraOne = 1;
+                if (req.query.specific) {
+                    extraOne = 0;
+                }
+                limitToLast = ind + 3 + extraOne; //Current + big vid
+
+                if (!awesomeSaved) {
+                    awesomeReadjust = true;
+                }
                 break;
+            } else {
+                return res.json({
+                    additions: awesomeSaved.slice(ind + 1, ind + 3 + extraOne)
+                });
             }
         case 'fiesta':
-            if (funstompSaved.length >= ind + 3) {
-                console.log('Cached..');
+            if (!funstompSaved || !(funstompSaved.length >= ind + 3)) {
+                orderBy = 'funstompN';
+                limitToLast = ind + 3; //Current
+
+                if (!funstompSaved) {
+                    fiestaReadjust = true;
+                }
+                break;
+            } else {
                 return res.json({
                     additions: funstompSaved.slice(ind, ind + 3)
                 });
-            } else {
-                orderBy = 'funstompN';
-                limitToLast = ind + 3; //Current
+            }
+        case 'newest':
+            if (!newestSaved || !(newestSaved.length >= ind + 3)) {
+                orderBy = 'created_at';
+                limitToLast = ind + 3;
+
+                if (!newestSaved) {
+                    newReadjust = true;
+                }
                 break;
+            } else {
+                return res.json({
+                    additions: newestSaved.slice(ind, ind + 3)
+                });
             }
     }
 
@@ -186,15 +266,49 @@ module.exports.getMoreVids = function (req, res, ind, type) {
                 vidsNew.push(model);
                 switch (type) {
                     case 'awesome':
+                        if (!awesomeSaved) {
+                            awesomeSaved = [];
+                        }
+
                         awesomeSaved.push(model);
                         break;
                     case 'fiesta':
+                        if (!funstompSaved) {
+                            funstompSaved = [];
+                        }
+
                         funstompSaved.push(model);
+                        break;
+                    case 'newest':
+                        if (!newestSaved) {
+                            newestSaved = [];
+                        }
+
+                        newestSaved.push(model);
                         break;
                 }
                 console.log('pushing model: ', model);
             }
         }
+        if (awesomeReadjust) {
+            awesomeSaved.sort(function(a, b) {
+                return b.awesomeN > a.awesomeN;
+            });
+            vidsNew = awesomeSaved.slice(awesomeSaved.length - 3);
+        }
+        if (fiestaReadjust) {
+            funstompSaved.sort(function(a, b) {
+                return b.funstompN > a.funstompN;
+            });
+            vidsNew = funstompSaved.slice(funstompSaved.length - 3);
+        }
+        if (newReadjust) {
+            newestSaved.sort(function(a, b) {
+                return b.created_at > a.created_at;
+            });
+            vidsNew = newestSaved.slice(newestSaved.length - 3);
+        }
+
         return res.json({
             additions: vidsNew
         });
@@ -347,6 +461,9 @@ module.exports.rateVideo = function(data, res) {
             negative = true;
         case 'awesome':
             voteType = '/awesomeN';
+            break;
+        case 'fun':
+            voteType = '/funstompN';
             break;
         default:
             console.log('incorrect type: ' + data.type + ' -exiting');
