@@ -18,8 +18,15 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());       // to support JSON-encoded bodies
 
 app.use(function(req, res, next) {
-    // Website you wish to allow to connect
-    res.setHeader('Access-Control-Allow-Origin', 'https://pro-league-videos.herokuapp.com');
+
+	var allowedOrigins = ['https://pro-league-videos.herokuapp.com', 'pro-league-videos.herokuapp.com', 'http://localhost:4200'];
+	var origin = req.headers.origin;
+
+	if (allowedOrigins.indexOf(origin) > -1) {
+    	// Website you wish to allow to connect
+    	res.setHeader('Access-Control-Allow-Origin', origin);
+
+	}
     //res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
 
     // Request methods you wish to allow
