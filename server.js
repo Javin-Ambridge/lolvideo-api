@@ -22,6 +22,7 @@ app.use(function(req, res, next) {
 	var allowedOrigins = ['https://pro-league-videos.herokuapp.com', 'pro-league-videos.herokuapp.com', 'http://localhost:4200'];
 	var origin = req.headers.origin;
 
+	console.log('ORIGIN: ' + origin + ', index: ' + allowedOrigins.indexOf(origin));
 	if (allowedOrigins.indexOf(origin) > -1) {
     	// Website you wish to allow to connect
     	res.setHeader('Access-Control-Allow-Origin', origin);
