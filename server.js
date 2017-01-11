@@ -19,7 +19,7 @@ app.use(bodyParser.json());       // to support JSON-encoded bodies
 
 app.use(function(req, res, next) {
 
-	var allowedOrigins = ['https://pro-league-videos.herokuapp.com', 'pro-league-videos.herokuapp.com', 'http://localhost:4200'];
+	var allowedOrigins = ['https://pro-league-videos.herokuapp.com', 'http://pro-league-videos.herokuapp.com', 'http://localhost:4200'];
 	var origin = req.headers.origin;
 
 	console.log('ORIGIN: ' + origin + ', index: ' + allowedOrigins.indexOf(origin));
