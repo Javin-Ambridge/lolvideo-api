@@ -5,8 +5,8 @@
   router.route('/videos').post(function(req, res) {
    console.log(req.body); quotes.addQuote(req,res); 
  	}).get(function(req,res) {
- 		if (req.query.type === 'awesome') {
- 			videos.getAwesomeSpecific(req, res);
+ 		if (req.query.type) {
+ 			videos.getSpecific(req, res, req.query.type);
  		} else {
  			videos.getAllVid(req,res);
  		}

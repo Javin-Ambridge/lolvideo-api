@@ -34,19 +34,47 @@ function emptyGhettoCache() {
     newestSaved = null;
 }
 
-module.exports.getAwesomeSpecific = function (req, res) {
-    if (awesomeSaved && awesomeSaved.length >= 12) {
-        return res.json({
-            awesome: awesomeSaved.slice(0, 12)
-        });
+module.exports.getSpecific = function (req, res, type) {
+    var sortT;
+    switch(type) {
+        case 'awesome':
+            if (awesomeSaved && awesomeSaved.length >= 12) {
+                return res.json({
+                    vids: awesomeSaved.slice(0, 12)
+                });
+            }
+            sortT = 'awesomeN';
+            break;
+        case 'fun':
+            if (funstompSaved && funstompSaved.length >= 12) {
+                return res.json({
+                    vids: funstompSaved.slice(0, 12)
+                });
+            }
+            sortT = 'funstompN';
+            break;
+        case 'new':
+            if (newestSaved && newestSaved.length >= 12) {
+                return res.json({
+                    vids: newestSaved.slice(0, 12)
+                });
+            }
+            sortT = 'created_at';
+            break;
+        default:
+            return res.json({
+                error: 'Inproper type passed: ' + type
+            });
+
     }
+
     var db = firebase.database();
     var ref = db.ref("/videos");
-    ref.orderByChild("awesomeN").limitToLast(12).once("value", function(vids) {
-        var awesomeVids = [];
+    ref.orderByChild(sortT).limitToLast(12).once("value", function(vids) {
+        var dataVids = [];
 
         for(var a in vids.val()) {
-            awesomeVids.push({
+            dataVids.push({
                 key: a,
                 id: vids.val()[a].id,
                 name: vids.val()[a].name,
@@ -58,9 +86,35 @@ module.exports.getAwesomeSpecific = function (req, res) {
                 created_at: new Date(vids.val()[a].created_at)
             });
         }
-        awesomeSaved = awesomeVids;
+        
+        switch(type) {
+            case 'awesome':
+                dataVids.sort(function(a, b) {
+                    return parseInt(b.awesomeN) - parseInt(a.awesomeN);
+                });
+                awesomeSaved = dataVids;
+                break;
+            case 'fun':
+                dataVids.sort(function(a, b) {
+                    return parseInt(b.funstompN) - parseInt(a.funstompN);
+                });
+                funstompSaved = dataVids;
+                break;
+            case 'new':
+                dataVids = reverseArray(dataVids);
+                dataVids.sort(function(a, b) {
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
+                newestSaved = dataVids;
+                break;
+            default:
+                return res.json({
+                    error: 'Inproper type passed: ' + type
+                });
+        }
+
         return res.json({
-            awesome: awesomeSaved
+            vids: dataVids
         });
     });
 };
@@ -131,11 +185,20 @@ module.exports.getAllVid = function (req, res) {
                 awesomeSaved = awesomeVids;
                 funstompSaved = funstompVids;
                 newestSaved = reverseArray(newestVids);
+                awesomeSaved.sort(function(a, b) {
+                    return parseInt(b.awesomeN) - parseInt(a.awesomeN);
+                });
+                funstompSaved.sort(function(a, b) {
+                    return parseInt(b.funstompN) - parseInt(a.funstompN);
+                });
+                newestSaved.sort(function(a, b) {
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
 
                 return res.json({
                     awesome: awesomeVids,
                     funstomp: funstompVids,
-                    newest: reverseArray(newestVids)
+                    newest: newestVids
                 });
             });
         });
@@ -290,22 +353,29 @@ module.exports.getMoreVids = function (req, res, ind, type) {
                 console.log('pushing model: ', model);
             }
         }
-        if (awesomeReadjust) {
+        if (awesomeSaved) {
             awesomeSaved.sort(function(a, b) {
                 return b.awesomeN > a.awesomeN;
             });
-            vidsNew = awesomeSaved.slice(awesomeSaved.length - 3);
         }
-        if (fiestaReadjust) {
+        if (funstompSaved) {
             funstompSaved.sort(function(a, b) {
                 return b.funstompN > a.funstompN;
             });
+        }
+        if (newestSaved) {  
+            newestSaved.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+        }
+        
+        if (awesomeReadjust) {
+            vidsNew = awesomeSaved.slice(awesomeSaved.length - 3);
+        }
+        if (fiestaReadjust) {
             vidsNew = funstompSaved.slice(funstompSaved.length - 3);
         }
         if (newReadjust) {
-            newestSaved.sort(function(a, b) {
-                return b.created_at > a.created_at;
-            });
             vidsNew = newestSaved.slice(newestSaved.length - 3);
         }
 
