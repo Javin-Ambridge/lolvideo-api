@@ -353,6 +353,16 @@ module.exports.getMoreVids = function (req, res, ind, type) {
                 console.log('pushing model: ', model);
             }
         }
+        if (awesomeReadjust) {
+            vidsNew = awesomeSaved.slice(awesomeSaved.length - 3);
+        }
+        if (fiestaReadjust) {
+            vidsNew = funstompSaved.slice(funstompSaved.length - 3);
+        }
+        if (newReadjust) {
+            vidsNew = newestSaved.slice(newestSaved.length - 3);
+        }
+        
         if (awesomeSaved) {
             awesomeSaved.sort(function(a, b) {
                 return b.awesomeN > a.awesomeN;
@@ -367,16 +377,6 @@ module.exports.getMoreVids = function (req, res, ind, type) {
             newestSaved.sort(function(a, b) {
                 return new Date(b.created_at) - new Date(a.created_at);
             });
-        }
-        
-        if (awesomeReadjust) {
-            vidsNew = awesomeSaved.slice(awesomeSaved.length - 3);
-        }
-        if (fiestaReadjust) {
-            vidsNew = funstompSaved.slice(funstompSaved.length - 3);
-        }
-        if (newReadjust) {
-            vidsNew = newestSaved.slice(newestSaved.length - 3);
         }
 
         return res.json({
