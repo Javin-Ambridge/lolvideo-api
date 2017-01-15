@@ -111,7 +111,6 @@ module.exports.getSpecific = function (req, res, type) {
                 funstompSaved = dataVids;
                 break;
             case 'new':
-                dataVids = reverseArray(dataVids);
                 dataVids.sort(function(a, b) {
                     return new Date(b.created_at) - new Date(a.created_at);
                 });
@@ -194,7 +193,7 @@ module.exports.getAllVid = function (req, res) {
 
                 awesomeSaved = awesomeVids;
                 funstompSaved = funstompVids;
-                newestSaved = reverseArray(newestVids);
+                newestSaved = newestVids;
                 awesomeSaved.sort(function(a, b) {
                     return parseInt(b.awesomeN) - parseInt(a.awesomeN);
                 });
@@ -214,14 +213,6 @@ module.exports.getAllVid = function (req, res) {
         });
     });
 };
-
-function reverseArray(original) {
-    var tmp = [];
-    for(var i = original.length - 1; i >= 0; i--) {
-        tmp.push(original[i]);
-    }
-    return tmp;
-}
 
 function isFound(type, vids, a) {
     switch(type) {
@@ -270,9 +261,9 @@ module.exports.getMoreVids = function (req, res, ind, type) {
     var newReadjust = false;
     switch (type) {
         case 'awesome':
+            var extraOne = 1;
             if (!awesomeSaved || !(awesomeSaved.length >= ind + 4)) {
                 orderBy = 'awesomeN';
-                extraOne = 1;
                 if (req.query.specific) {
                     extraOne = 0;
                 }
