@@ -36,9 +36,13 @@ function emptyGhettoCache() {
 
 module.exports.getSpecific = function (req, res, type) {
     var sortT;
+
     switch(type) {
         case 'awesome':
             if (awesomeSaved && awesomeSaved.length >= 12) {
+                awesomeSaved.sort(function(a, b) {
+                    return parseInt(b.awesomeN) - parseInt(a.awesomeN);
+                });
                 return res.json({
                     vids: awesomeSaved.slice(0, 12)
                 });
@@ -47,6 +51,9 @@ module.exports.getSpecific = function (req, res, type) {
             break;
         case 'fun':
             if (funstompSaved && funstompSaved.length >= 12) {
+                funstompSaved.sort(function(a, b) {
+                    return parseInt(b.funstompN) - parseInt(a.funstompN);
+                });  
                 return res.json({
                     vids: funstompSaved.slice(0, 12)
                 });
@@ -55,6 +62,9 @@ module.exports.getSpecific = function (req, res, type) {
             break;
         case 'new':
             if (newestSaved && newestSaved.length >= 12) {
+                newestSaved.sort(function(a, b) {
+                    return new Date(b.created_at) - new Date(a.created_at);
+                });
                 return res.json({
                     vids: newestSaved.slice(0, 12)
                 });
@@ -362,7 +372,7 @@ module.exports.getMoreVids = function (req, res, ind, type) {
         if (newReadjust) {
             vidsNew = newestSaved.slice(newestSaved.length - 3);
         }
-        
+
         if (awesomeSaved) {
             awesomeSaved.sort(function(a, b) {
                 return b.awesomeN > a.awesomeN;
