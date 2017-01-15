@@ -132,6 +132,15 @@ module.exports.getAllVid = function (req, res) {
     if (awesomeSaved && funstompSaved && newestSaved) {
         if (awesomeSaved.length >= 4 && funstompSaved.length >= 3 && newestSaved.length >= 3) {
             console.log('Using saved');
+            awesomeSaved.sort(function(a, b) {
+                return parseInt(b.awesomeN) - parseInt(a.awesomeN);
+            });
+            funstompSaved.sort(function(a, b) {
+                return parseInt(b.funstompN) - parseInt(a.funstompN);
+            });  
+            newestSaved.sort(function(a, b) {
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
             return res.json({
                 awesome: awesomeSaved.slice(0, 4),
                 funstomp: funstompSaved.slice(0, 3),
