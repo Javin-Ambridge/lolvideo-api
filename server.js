@@ -46,7 +46,7 @@ app.use(function(req, res, next) {
 
 //
 firebase.initializeApp({
-  serviceAccount: "./config/lolvideo-7c00d5772a07.json",
+  serviceAccount: "./config/lolvideo-d12f0-firebase-adminsdk-y13d0-a8adba59dd.json",
   databaseURL: "https://lolvideo-d12f0.firebaseio.com"
 });
 
