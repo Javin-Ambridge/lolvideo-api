@@ -520,6 +520,7 @@ function startSeries(cvl) {
         }
     }, function(err) {
         console.log(consoleTag + "DONE VIDEO REFRESH");
+        locked = false;
     });
 }
 
