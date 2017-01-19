@@ -46,5 +46,11 @@ module.exports.playlistIds = [{
 		year: 2017,
 		region: 'LCK',
 		done: false
+	}, {
+		id: 'PLJIIsW8PQINCIoKnzvP87nZz1eyjbQyqd',
+		name: 'Spring Split',
+		year: 2017,
+		region: 'EU LCS',
+		done: false
 	}
 ];
