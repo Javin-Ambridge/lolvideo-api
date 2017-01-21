@@ -16,7 +16,8 @@ module.exports.cronJob = function() {
 		cronTime: '1 */15 7-23 * * *',
 		onTick: function() {
 			console.log('Pinging Updater');
-			ping.sys.probe('https://lolvideo-ghetto-worker.herokuapp.com/', function(isAlive) {
+			var host = 'https://lolvideo-ghetto-worker.herokuapp.com/';
+			ping.sys.probe(host, function(isAlive) {
 		        var msg = isAlive ? 'host ' + host + ' is alive' : 'host ' + host + ' is dead';
 		        console.log(msg);
 			});
